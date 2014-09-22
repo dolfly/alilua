@@ -8,6 +8,8 @@ RUN apt-get -qq update
 
 RUN apt-get -qqy install libssl-dev
 
+RUN apt-get -qqy install git 
+
 RUN git clone https://github.com/dolfly/alilua.git 
 
 RUN cd alilua
