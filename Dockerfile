@@ -8,7 +8,7 @@ RUN apt-get -qq update
 
 RUN apt-get -qqy install libssl-dev
 
-RUN apt-get -qqy install git 
+RUN apt-get -qqy install git make gcc
 
 RUN git clone https://github.com/dolfly/alilua.git 
 
