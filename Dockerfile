@@ -12,8 +12,10 @@ RUN apt-get -qqy install git make gcc
 
 RUN git clone https://github.com/dolfly/alilua.git 
 
-RUN cd alilua
+RUN mkdir /alilua
 
-RUN make install clean
+COPY ./* /alilua/
 
-RUN alilua --daemon --bind=8080
+RUN cd alilua && make install clean
+
+CMD ['/alilua/alilua' '--daemon' '--bind=8080']
