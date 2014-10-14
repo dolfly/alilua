@@ -3,6 +3,7 @@
 #include "network.h"
 #include "websocket.h"
 #include "worker.h"
+#include "cached-ntoa.h"
 
 static char temp_buf[8192];
 static char temp_buf64k[61440];
@@ -361,7 +362,7 @@ void network_end_process(epdata_t *epd, int response_code)
 
     if(ACCESS_LOG) log_writef(ACCESS_LOG,
                                   "%s - - [%s] %s \"%s %s %s\" %d %d %d %d %d \"%s\" \"%s\" %.3f\n",
-                                  inet_ntoa(epd->client_addr),
+                                  cached_ntoa(epd->client_addr),
                                   now_lc,
                                   epd->host ? epd->host : "-",
                                   epd->method ? epd->method : "-",
@@ -375,6 +376,10 @@ void network_end_process(epdata_t *epd, int response_code)
                                   epd->referer ? epd->referer : "-",
                                   epd->user_agent ? epd->user_agent : "-",
                                   (float)(ttime - epd->start_time) / 1000);
+
+    if(epd->L) {
+        reinit_lua_thread_env(epd->L);
+    }
 
     if(epd->keepalive == 1 && !check_process_for_exit()) { // && epd->se_ptr
         update_timeout(epd->timeout_ptr, STEP_WAIT_TIMEOUT);
@@ -777,9 +782,6 @@ int send_100_continue_then_process(se_ptr_t *ptr)
     epd->response_content_length = 0;
     epd->iov_buf_count = 0;
 
-    epd->status = STEP_PROCESS;
-    serv_status.sending_counts--;
-
     if(worker_process(epd, 0) != 0) {
         close_client(epd);
         epd = NULL;
@@ -1004,7 +1006,7 @@ int network_be_read(se_ptr_t *ptr)
                 epd->has_content_length_or_chunk_out = 0;
                 epd->content_gzip_or_deflated = 0;
 
-                if(stristr(epd->headers + (epd->_header_length - 60), "100-continue", epd->_header_length)) {
+                if(stristr(epd->headers, "100-continue", epd->_header_length)) {
                     //network_raw_send(epd->fd, "HTTP/1.1 100 Continue\r\n\r\n", 25);
                     if(epd->iov[0].iov_base == NULL) {
                         epd->iov[0].iov_base = malloc(EP_D_BUF_SIZE);
