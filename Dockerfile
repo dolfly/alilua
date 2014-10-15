@@ -16,6 +16,6 @@ RUN mkdir /alilua
 
 COPY ./* /alilua/
 
-RUN cd alilua && make install clean
+RUN cd alilua && make all 
 
 CMD ['/alilua/alilua' '--daemon' '--bind=8080']
