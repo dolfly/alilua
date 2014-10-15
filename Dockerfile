@@ -12,7 +12,7 @@ RUN apt-get -qqy install git make gcc
 
 RUN git clone https://github.com/dolfly/alilua.git 
 
-RUN mkdir /alilua
+RUN [ ! -d /alilua ] && mkdir -p /alilua
 
 COPY ./* /alilua/
 
